@@ -16,37 +16,13 @@ public class App {
     private static List<Integer> tmpArr2 = new ArrayList<>();
     private static Map<Integer, HashSet<Integer>> frontward = new HashMap<>();
     private static Map<Integer, HashSet<Integer>> backward = new HashMap<>();
-    private static Map<List<Integer[]>, BigDecimal> combineResult = new ConcurrentHashMap<>();
+    private static Map<List<Integer[]>, VerifyResult> combineResult = new ConcurrentHashMap<>();
 
     private static boolean ruleOutNoRepeat(Integer[] array, int n) {
         Set<Integer> repeat = new HashSet<>(Arrays.asList(array));
         return repeat.size() != n;
     }
 
-    private static HashSet<Integer> combine2(int index, int k, List<Integer> arr, HashSet<Integer> set, int n) {
-        if (k == 1) {
-            for (int i = index; i < arr.size(); i++) {
-                if (i == index) {
-                    tmpArr2.add(arr.get(i));
-                    int sum = 0;
-                    for (Integer d : tmpArr2) {
-                        sum += d;
-                    }
-                    set.add(sum + n);
-                    tmpArr2.remove(arr.get(i));
-                }
-            }
-        } else if (k > 1) {
-            for (int i = index; i <= arr.size() - k; i++) {
-                if (i == index) {
-                    tmpArr2.add(arr.get(i));
-                    combine2(i + 1, k - 1, arr, set, n);
-                    tmpArr2.remove(arr.get(i));
-                }
-            }
-        }
-        return set;
-    }
 
     public static void main(String[] args) {
         // 输入n和T
@@ -56,14 +32,16 @@ public class App {
         System.out.print("请输入T：");
         int t = sc.nextInt();
         System.out.print("请输入可靠率：");
-        BigDecimal rate = sc.nextBigDecimal();
+        BigDecimal reliability = sc.nextBigDecimal();
+        // 启发式参数
+        BigDecimal baseLine = reliability.multiply(new BigDecimal(3.92)).subtract(new BigDecimal(3)).setScale(6, BigDecimal.ROUND_HALF_EVEN);
         System.out.println("--------------------------");
         if (n > t) {
             System.out.println("请检查输入的n和T的值！");
             return;
         }
-        if (rate.compareTo(BigDecimal.ONE) > 0) {
-            System.out.println("精确度应小于1！");
+        if (reliability.compareTo(BigDecimal.ONE) >= 0) {
+            System.out.println("可靠度应小于等于1！");
             return;
         }
 
@@ -133,13 +111,12 @@ public class App {
                 resultMap.put(index, array);
                 resultList.add(index);
                 HashSet<Integer> set = new HashSet<>(Arrays.asList(array));
-
                 Integer[] tempArray = new Integer[array.length];
                 System.arraycopy(array, 0, tempArray, 0, array.length);
                 for (int i = 2; i < n; i++) {
                     for (int j = 0; j < tempArray.length; j++) {
                         tempArray = DispatchUtils.moveArrayElement(tempArray, 1);
-                        HashSet<Integer> sum = combine2(0, i, Arrays.asList(tempArray), new HashSet<>(), i - 1);
+                        HashSet<Integer> sum = DispatchUtils.combine2(0, i, Arrays.asList(tempArray), new HashSet<>(), i - 1, tmpArr2);
                         set.addAll(sum);
                     }
                 }
@@ -156,7 +133,7 @@ public class App {
         //组合模式
         ArrayBlockingQueue<List<Integer[]>> queue = new ArrayBlockingQueue<>(1000);
         final CountDownLatch countDownLatch = new CountDownLatch(THREAD_NUM + 1);
-        ArrayProducer producer = new ArrayProducer(0, n, resultList, queue, countDownLatch, resultMap);
+        ArrayProducer producer = new ArrayProducer(0, n, resultList, queue, countDownLatch, resultMap, frontward, baseLine);
 
         ExecutorService producerExecutorService = new ThreadPoolExecutor(1, 1, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         ExecutorService verifyExecutorService = new ThreadPoolExecutor(THREAD_NUM, THREAD_NUM, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
@@ -167,7 +144,7 @@ public class App {
         producerExecutorService.submit(producer);
         System.out.println("-----------消费者启动-----------------");
         for (int i = 0; i < THREAD_NUM; i++) {
-            verifyExecutorService.submit(new VerifyConsumer(i, n, t, rate, combineResult, queue, countDownLatch));
+            verifyExecutorService.submit(new VerifyConsumer(i, n, t, reliability, combineResult, queue, countDownLatch));
         }
 
         try {
@@ -180,6 +157,7 @@ public class App {
         System.out.println("----------模式验证完毕------------");
 
         if (combineResult.size() > 0) {
+            DispatchUtils.writeExcel(combineResult);
             System.out.println("T = " + t + "时： 共" + combineResult.size() + "种调度方案");
         } else {
             System.out.println("T = " + t + "时：");

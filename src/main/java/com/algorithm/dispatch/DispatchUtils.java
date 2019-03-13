@@ -1,8 +1,14 @@
 package com.algorithm.dispatch;
 
+import org.apache.poi.xssf.streaming.SXSSFCell;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+
+import java.io.FileOutputStream;
+import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 公共工具类
@@ -92,5 +98,101 @@ public class DispatchUtils {
         long left = i << (t - distance);
         long mask = ((2 << t) - 1);
         return (right | left) & mask;
+    }
+
+    public static HashSet<Integer> combine2(int index, int k, List<Integer> arr, HashSet<Integer> set, int n, List<Integer> tmpArr2) {
+        if (k == 1) {
+            for (int i = index; i < arr.size(); i++) {
+                if (i == index) {
+                    tmpArr2.add(arr.get(i));
+                    int sum = 0;
+                    for (Integer d : tmpArr2) {
+                        sum += d;
+                    }
+                    set.add(sum + n);
+                    tmpArr2.remove(arr.get(i));
+                }
+            }
+        } else if (k > 1) {
+            for (int i = index; i <= arr.size() - k; i++) {
+                if (i == index) {
+                    tmpArr2.add(arr.get(i));
+                    combine2(i + 1, k - 1, arr, set, n, tmpArr2);
+                    tmpArr2.remove(arr.get(i));
+                }
+            }
+        }
+        return set;
+    }
+
+    public static BigDecimal calculateRepetitiveRate(List<Integer[]> arr, int n) {
+        HashSet<Integer> all = new HashSet<>();
+        List<Integer> tmpArr = new ArrayList<>();
+        int setCount = 0;
+        for(Integer[] a : arr) {
+            HashSet<Integer> set = new HashSet<>(Arrays.asList(a));
+            Integer[] tempArray = new Integer[a.length];
+            System.arraycopy(a, 0, tempArray, 0, a.length);
+            for (int i = 2; i < n; i++) {
+                for (int j = 0; j < tempArray.length; j++) {
+                    tempArray = DispatchUtils.moveArrayElement(tempArray, 1);
+                    HashSet<Integer> sum = DispatchUtils.combine2(0, i, Arrays.asList(tempArray), new HashSet<>(), i - 1, tmpArr);
+                    set.addAll(sum);
+                }
+            }
+            setCount += set.size();
+            all.addAll(set);
+        }
+        return  new BigDecimal((double) all.size() / (double)setCount).setScale(6, BigDecimal.ROUND_HALF_EVEN);
+    }
+
+    public static BigDecimal calculateRepetitiveRate(List<Integer> arr, Map<Integer, HashSet<Integer>> frontward) {
+        HashSet<Integer> all = new HashSet<>();
+        int setCount = 0;
+        for(Integer a : arr) {
+            HashSet<Integer> set = frontward.get(a);
+            setCount += set.size();
+            all.addAll(set);
+        }
+        return  new BigDecimal((double) all.size() / (double)setCount).setScale(6, BigDecimal.ROUND_HALF_EVEN);
+    }
+
+    public static void writeExcel(Map<List<Integer[]>, VerifyResult> map) {
+        Date now = new Date();
+        SXSSFWorkbook wb = new SXSSFWorkbook();
+        SXSSFSheet sheet = wb.createSheet(String.valueOf(now.getTime()));
+        sheet.trackAllColumnsForAutoSizing();
+
+        int currentRowNum = 0;
+        int currentColNum = 0;
+        SXSSFRow row = sheet.createRow(currentRowNum);
+
+        SXSSFCell cell = row.createCell(currentColNum);
+        cell.setCellValue("可靠率");
+        currentColNum++;
+
+        cell = row.createCell(currentColNum);
+        cell.setCellValue("间隔不重复率");
+
+        for(Map.Entry<List<Integer[]>, VerifyResult> entry : map.entrySet()) {
+            currentRowNum++;
+            currentColNum = 0;
+            row = sheet.createRow(currentRowNum);
+
+            cell = row.createCell(currentColNum);
+            cell.setCellValue(entry.getValue().getReliability().doubleValue());
+            currentColNum++;
+
+            cell = row.createCell(currentColNum);
+            cell.setCellValue(entry.getValue().getRepetitiveRate().doubleValue());
+        }
+
+        try {
+            FileOutputStream fout = new FileOutputStream("D:\\workspace\\dispatch0301\\" + now.getTime() + ".xlsx");
+            wb.write(fout);
+            fout.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

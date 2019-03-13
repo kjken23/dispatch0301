@@ -1,5 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Java template
+#temp xlsx
+*.xlsx
+
 # Compiled class file
 *.class
 

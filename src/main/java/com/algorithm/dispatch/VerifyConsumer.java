@@ -1,9 +1,7 @@
 package com.algorithm.dispatch;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -18,13 +16,13 @@ public class VerifyConsumer implements Runnable {
     private int n;
     private int t;
     private BigDecimal rate;
-    private Map<List<Integer[]>, BigDecimal> combineResult;
+    private Map<List<Integer[]>, VerifyResult> combineResult;
     private Long[] array;
     private final ArrayBlockingQueue<List<Integer[]>> queue;
     private final CountDownLatch countDownLatch;
     private int correctNum = 0;
 
-    public VerifyConsumer(int num, int n, int t, BigDecimal rate, Map<List<Integer[]>, BigDecimal> combineResult, ArrayBlockingQueue<List<Integer[]>> queue, CountDownLatch countDownLatch) {
+    public VerifyConsumer(int num, int n, int t, BigDecimal rate, Map<List<Integer[]>, VerifyResult> combineResult, ArrayBlockingQueue<List<Integer[]>> queue, CountDownLatch countDownLatch) {
         this.num = num;
         this.n = n;
         this.t = t;
@@ -121,19 +119,23 @@ public class VerifyConsumer implements Runnable {
                 e.printStackTrace();
             }
             if(arr != null) {
-                BigDecimal result = formatAndVerify(arr);
-                if (result.compareTo(rate) > 0) {
-                    combineResult.put(arr, result);
+                BigDecimal reliability = formatAndVerify(arr);
+                if (reliability.compareTo(rate) > 0) {
+                    BigDecimal repetitiveRate = DispatchUtils.calculateRepetitiveRate(arr, n);
+                    VerifyResult verifyResult = new VerifyResult(reliability, repetitiveRate);
+                    combineResult.put(arr, verifyResult);
                     System.out.println("验证线程" + num + "-调度方案：");
                     for (Integer[] a : arr) {
                         System.out.println(Arrays.toString(a));
                     }
                     System.out.println("验证通过！");
-                    System.out.println("可靠率：" + result);
+                    System.out.println("可靠率：" + reliability);
+                    System.out.println("重复率：" + repetitiveRate);
                 }
             } else {
                 countDownLatch.countDown();
                 System.out.println("---------------验证线程" + num + "结束--------------");
+                break;
             }
         }
     }
