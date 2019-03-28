@@ -40,7 +40,7 @@ public class ArrayProducer implements Runnable {
         if (k == 1) {
             for (int i = index; i < arr.size(); i++) {
                 tmpArr.add(arr.get(i));
-                if(DispatchUtils.calculateRepetitiveRate(tmpArr, frontward).compareTo(reliability) > 0) {
+//                if(DispatchUtils.calculateRepetitiveRate(tmpArr, frontward).compareTo(reliability) > 0) {
                     List<Integer[]> tmp = new ArrayList<>();
                     for (Integer integer : tmpArr) {
                         tmp.add(resultMap.get(integer));
@@ -50,15 +50,15 @@ public class ArrayProducer implements Runnable {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
+//                }
                 tmpArr.remove(arr.get(i));
             }
         } else if (k > 1) {
             for (int i = index; i <= arr.size() - k; i++) {
                 tmpArr.add(arr.get(i));
-                if(tmpArr.size() == 1 || DispatchUtils.calculateRepetitiveRate(tmpArr, frontward).compareTo(reliability) > 0) {
+//                if(tmpArr.size() == 1 || DispatchUtils.calculateRepetitiveRate(tmpArr, frontward).compareTo(reliability) > 0) {
                     combine(i + 1, k - 1, arr);
-                }
+//                }
                 tmpArr.remove(arr.get(i));
             }
         }

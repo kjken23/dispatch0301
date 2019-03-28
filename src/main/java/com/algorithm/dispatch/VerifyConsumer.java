@@ -104,8 +104,8 @@ public class VerifyConsumer implements Runnable {
             map.put(i, 0);
         }
         for (int i = 0; i < samplingNum; i++) {
+            random  = new Random();
             for (int j = 0; j < arrayList.length; j++) {
-                random  = new Random();
                 int offset = random.nextInt(t);
                 temp[j] = DispatchUtils.rotateRight(temp[j], offset, t);
             }
@@ -115,7 +115,7 @@ public class VerifyConsumer implements Runnable {
         for(Map.Entry<Integer, Integer> entry : map.entrySet()) {
             count += entry.getValue();
         }
-        return new BigDecimal((double) count / (double) (4 * samplingNum)).setScale(6, BigDecimal.ROUND_HALF_EVEN);
+        return new BigDecimal((double) count / (double) (n * samplingNum)).setScale(6, BigDecimal.ROUND_HALF_EVEN);
     }
 
 //    private BigDecimal formatAndVerify(List<Integer[]> list) {
@@ -146,7 +146,7 @@ public class VerifyConsumer implements Runnable {
     @Override
     public void run() {
         double total = Math.pow(t, n) * 0.01;
-        int samplingNum = total > 50000 ? 50000 :  Math.max((int) (total / 1000), 1) * 1000;
+        int samplingNum = total > 100000 ? 100000 :  Math.max((int) (total / 1000), 1) * 1000;
         System.out.println("抽样数：" + samplingNum);
         while(flag) {
 //            totalCount = 0;
@@ -165,7 +165,6 @@ public class VerifyConsumer implements Runnable {
                 e.printStackTrace();
             }
             if(arr != null) {
-//                BigDecimal reliability = formatAndVerify(arr);
                 BigDecimal samplingReliability = formatAndVerifySampling(arr, samplingNum);
                 if (samplingReliability.compareTo(rate) > 0) {
                     BigDecimal repetitiveRate = DispatchUtils.calculateRepetitiveRate(arr, n);

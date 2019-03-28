@@ -97,7 +97,7 @@ public class DispatchUtils {
     public static Long rotateRight(long i, int distance, int t) {
         long right = i >> distance;
         long left = i << (t - distance);
-        long mask = ((2 << t) - 1);
+        long mask =  (1L << t) - 1;
         return (right | left) & mask;
     }
 
@@ -216,5 +216,55 @@ public class DispatchUtils {
             matrix[i] = Long.valueOf(String.valueOf(tempMatrix[i]), 2);
         }
         return matrix;
+    }
+
+    public static BigDecimal samplingVerify(Long[] arrayList,int n ,int t,int samplingNum) throws Exception {
+        if (arrayList.length == 0) {
+            throw new Exception("数组长度不能为0");
+        }
+        Random random;
+        Long[] temp = arrayList.clone();
+        Map<Integer, Integer> map = new HashMap<>(n);
+        for (int i = 0; i < n; i++) {
+            map.put(i, 0);
+        }
+        for (int i = 0; i < samplingNum; i++) {
+            random  = new Random();
+            for (int j = 0; j < arrayList.length; j++) {
+                int offset = random.nextInt(t);
+                temp[j] = DispatchUtils.rotateRight(temp[j], offset, t);
+            }
+            judge(temp, map, n, t);
+        }
+        int count = 0;
+        for(Map.Entry<Integer, Integer> entry : map.entrySet()) {
+            count += entry.getValue();
+        }
+        return new BigDecimal((double) count / (double) (n * samplingNum)).setScale(6, BigDecimal.ROUND_HALF_EVEN);
+    }
+
+    private static boolean judgeSingleNode(Long[] arrayList, int i, int n, int t) {
+        long mask = (long)((1 << t) - 1);
+        long others = 0L;
+        for (int j = 0; j < n; j++) {
+            if (j == i) {
+                continue;
+            }
+            others = others | arrayList[j];
+        }
+//        totalCount++;
+        return ((arrayList[i] & mask) & (~others & mask)) > 0L;
+    }
+
+    private static void judge(Long[] arrayList, Map<Integer, Integer> map, int n, int t) throws Exception {
+        if (arrayList.length == 0) {
+            throw new Exception("数组长度不能为0");
+        }
+        for (int i = 0; i < n; i++) {
+            if(judgeSingleNode(arrayList, i, n, t)) {
+                Integer count = map.get(i);
+                map.replace(i, ++count);
+            }
+        }
     }
 }
