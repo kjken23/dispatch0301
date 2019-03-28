@@ -22,8 +22,9 @@ public class ArrayProducer implements Runnable {
     private Map<Integer, Integer[]> resultMap;
     private Map<Integer, HashSet<Integer>> frontward;
     private BigDecimal reliability;
+    private volatile boolean flag;
 
-    public ArrayProducer(int index, int k, List<Integer> arr, ArrayBlockingQueue<List<Integer[]>> queue, CountDownLatch countDownLatch, Map<Integer, Integer[]> resultMap, Map<Integer, HashSet<Integer>> frontward, BigDecimal reliability) {
+    public ArrayProducer(int index, int k, List<Integer> arr, ArrayBlockingQueue<List<Integer[]>> queue, CountDownLatch countDownLatch, Map<Integer, Integer[]> resultMap, Map<Integer, HashSet<Integer>> frontward, BigDecimal reliability, boolean flag) {
         this.index = index;
         this.k = k;
         this.arr = arr;
@@ -32,6 +33,7 @@ public class ArrayProducer implements Runnable {
         this.resultMap = resultMap;
         this.frontward = frontward;
         this.reliability = reliability;
+        this.flag = flag;
     }
 
     private void combine(int index, int k, List<Integer> arr) {
@@ -70,6 +72,7 @@ public class ArrayProducer implements Runnable {
             e.printStackTrace();
         } finally {
             countDownLatch.countDown();
+            flag = false;
             System.out.println("------------生产者结束---------------");
         }
     }

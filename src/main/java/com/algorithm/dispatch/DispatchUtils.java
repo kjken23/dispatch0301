@@ -86,6 +86,7 @@ public class DispatchUtils {
         return -1;
     }
 
+    @Deprecated
     public static BigInteger rotateRight(BigInteger i, int distance, int t) {
         BigInteger right = i.shiftRight(distance);
         BigInteger left = i.shiftLeft(t - distance);
@@ -125,21 +126,25 @@ public class DispatchUtils {
         return set;
     }
 
+    public static void calculateSet(Integer[] a, Set<Integer> set, int n,  List<Integer> tmpArr) {
+        Integer[] tempArray = new Integer[a.length];
+        System.arraycopy(a, 0, tempArray, 0, a.length);
+        for (int i = 2; i < n; i++) {
+            for (int j = 0; j < tempArray.length; j++) {
+                tempArray = DispatchUtils.moveArrayElement(tempArray, 1);
+                HashSet<Integer> sum = DispatchUtils.combine2(0, i, Arrays.asList(tempArray), new HashSet<>(), i - 1, tmpArr);
+                set.addAll(sum);
+            }
+        }
+    }
+
     public static BigDecimal calculateRepetitiveRate(List<Integer[]> arr, int n) {
         HashSet<Integer> all = new HashSet<>();
         List<Integer> tmpArr = new ArrayList<>();
         int setCount = 0;
         for(Integer[] a : arr) {
             HashSet<Integer> set = new HashSet<>(Arrays.asList(a));
-            Integer[] tempArray = new Integer[a.length];
-            System.arraycopy(a, 0, tempArray, 0, a.length);
-            for (int i = 2; i < n; i++) {
-                for (int j = 0; j < tempArray.length; j++) {
-                    tempArray = DispatchUtils.moveArrayElement(tempArray, 1);
-                    HashSet<Integer> sum = DispatchUtils.combine2(0, i, Arrays.asList(tempArray), new HashSet<>(), i - 1, tmpArr);
-                    set.addAll(sum);
-                }
-            }
+            calculateSet(a, set, n, tmpArr);
             setCount += set.size();
             all.addAll(set);
         }
@@ -194,5 +199,22 @@ public class DispatchUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static Long[] formatMatrix(int n, int t, List<Integer[]> list) {
+        char[][] tempMatrix = initArray(n, t);
+        for (int i = 0, len1 = list.size(); i < len1; i++) {
+            int pos = 1;
+            for (Integer integer : list.get(i)) {
+                pos += integer;
+                tempMatrix[i][pos % t] = '1';
+                pos++;
+            }
+        }
+        Long[] matrix = new Long[n];
+        for (int i = 0; i < tempMatrix.length; i++) {
+            matrix[i] = Long.valueOf(String.valueOf(tempMatrix[i]), 2);
+        }
+        return matrix;
     }
 }

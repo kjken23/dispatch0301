@@ -17,6 +17,7 @@ public class App {
     private static Map<Integer, HashSet<Integer>> frontward = new HashMap<>();
     private static Map<Integer, HashSet<Integer>> backward = new HashMap<>();
     private static Map<List<Integer[]>, VerifyResult> combineResult = new ConcurrentHashMap<>();
+    private static volatile boolean flag = true;
 
     private static boolean ruleOutNoRepeat(Integer[] array, int n) {
         Set<Integer> repeat = new HashSet<>(Arrays.asList(array));
@@ -59,7 +60,7 @@ public class App {
             try {
                 for (Map.Entry<Integer, List<Integer[]>> entry : future.get().entrySet()) {
                     // 对于少于n的结果补0
-                    if (entry.getKey() != n) {
+                    if (entry.getKey() < n) {
                         for (Integer[] ca : entry.getValue()) {
                             Integer[] newca = new Integer[n];
                             for (int i = 0; i < n - entry.getKey(); i++) {
@@ -111,15 +112,7 @@ public class App {
                 resultMap.put(index, array);
                 resultList.add(index);
                 HashSet<Integer> set = new HashSet<>(Arrays.asList(array));
-                Integer[] tempArray = new Integer[array.length];
-                System.arraycopy(array, 0, tempArray, 0, array.length);
-                for (int i = 2; i < n; i++) {
-                    for (int j = 0; j < tempArray.length; j++) {
-                        tempArray = DispatchUtils.moveArrayElement(tempArray, 1);
-                        HashSet<Integer> sum = DispatchUtils.combine2(0, i, Arrays.asList(tempArray), new HashSet<>(), i - 1, tmpArr2);
-                        set.addAll(sum);
-                    }
-                }
+                DispatchUtils.calculateSet(array, set, n, tmpArr2);
                 frontward.put(index, set);
                 for (Integer d : set) {
                     HashSet<Integer> temp = backward.get(d) == null ? new HashSet<>() : backward.get(d);
@@ -133,18 +126,16 @@ public class App {
         //组合模式
         ArrayBlockingQueue<List<Integer[]>> queue = new ArrayBlockingQueue<>(1000);
         final CountDownLatch countDownLatch = new CountDownLatch(THREAD_NUM + 1);
-        ArrayProducer producer = new ArrayProducer(0, n, resultList, queue, countDownLatch, resultMap, frontward, baseLine);
+        ArrayProducer producer = new ArrayProducer(0, n, resultList, queue, countDownLatch, resultMap, frontward, baseLine, flag);
 
         ExecutorService producerExecutorService = new ThreadPoolExecutor(1, 1, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         ExecutorService verifyExecutorService = new ThreadPoolExecutor(THREAD_NUM, THREAD_NUM, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
-
-
 
         System.out.println("-----------生产者启动-----------------");
         producerExecutorService.submit(producer);
         System.out.println("-----------消费者启动-----------------");
         for (int i = 0; i < THREAD_NUM; i++) {
-            verifyExecutorService.submit(new VerifyConsumer(i, n, t, reliability, combineResult, queue, countDownLatch));
+            verifyExecutorService.submit(new VerifyConsumer(i, n, t, reliability, combineResult, queue, countDownLatch, flag));
         }
 
         try {
