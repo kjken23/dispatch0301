@@ -252,7 +252,6 @@ public class DispatchUtils {
             }
             others = others | arrayList[j];
         }
-//        totalCount++;
         return ((arrayList[i] & mask) & (~others & mask)) > 0L;
     }
 
