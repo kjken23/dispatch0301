@@ -97,7 +97,7 @@ public class DispatchUtils {
     public static Long rotateRight(long i, int distance, int t) {
         long right = i >> distance;
         long left = i << (t - distance);
-        long mask =  (1L << t) - 1;
+        long mask = (1L << t) - 1;
         return (right | left) & mask;
     }
 
@@ -126,7 +126,7 @@ public class DispatchUtils {
         return set;
     }
 
-    public static void calculateSet(Integer[] a, Set<Integer> set, int n,  List<Integer> tmpArr) {
+    public static void calculateSet(Integer[] a, Set<Integer> set, int n, List<Integer> tmpArr) {
         Integer[] tempArray = new Integer[a.length];
         System.arraycopy(a, 0, tempArray, 0, a.length);
         for (int i = 2; i < n; i++) {
@@ -142,24 +142,24 @@ public class DispatchUtils {
         HashSet<Integer> all = new HashSet<>();
         List<Integer> tmpArr = new ArrayList<>();
         int setCount = 0;
-        for(Integer[] a : arr) {
+        for (Integer[] a : arr) {
             HashSet<Integer> set = new HashSet<>(Arrays.asList(a));
             calculateSet(a, set, n, tmpArr);
             setCount += set.size();
             all.addAll(set);
         }
-        return  new BigDecimal((double) all.size() / (double)setCount).setScale(6, BigDecimal.ROUND_HALF_EVEN);
+        return new BigDecimal((double) all.size() / (double) setCount).setScale(6, BigDecimal.ROUND_HALF_EVEN);
     }
 
     public static BigDecimal calculateRepetitiveRate(List<Integer> arr, Map<Integer, HashSet<Integer>> frontward) {
         HashSet<Integer> all = new HashSet<>();
         int setCount = 0;
-        for(Integer a : arr) {
+        for (Integer a : arr) {
             HashSet<Integer> set = frontward.get(a);
             setCount += set.size();
             all.addAll(set);
         }
-        return  new BigDecimal((double) all.size() / (double)setCount).setScale(6, BigDecimal.ROUND_HALF_EVEN);
+        return new BigDecimal((double) all.size() / (double) setCount).setScale(6, BigDecimal.ROUND_HALF_EVEN);
     }
 
     public static void writeExcel(Map<List<Integer[]>, VerifyResult> map) {
@@ -179,7 +179,7 @@ public class DispatchUtils {
         cell = row.createCell(currentColNum);
         cell.setCellValue("间隔不重复率");
 
-        for(Map.Entry<List<Integer[]>, VerifyResult> entry : map.entrySet()) {
+        for (Map.Entry<List<Integer[]>, VerifyResult> entry : map.entrySet()) {
             currentRowNum++;
             currentColNum = 0;
             row = sheet.createRow(currentRowNum);
@@ -218,7 +218,7 @@ public class DispatchUtils {
         return matrix;
     }
 
-    public static BigDecimal samplingVerify(Long[] arrayList,int n ,int t,int samplingNum) throws Exception {
+    public static BigDecimal samplingVerify(Long[] arrayList, int n, int t, int samplingNum) throws Exception {
         if (arrayList.length == 0) {
             throw new Exception("数组长度不能为0");
         }
@@ -229,7 +229,7 @@ public class DispatchUtils {
             map.put(i, 0);
         }
         for (int i = 0; i < samplingNum; i++) {
-            random  = new Random();
+            random = new Random();
             for (int j = 0; j < arrayList.length; j++) {
                 int offset = random.nextInt(t);
                 temp[j] = DispatchUtils.rotateRight(temp[j], offset, t);
@@ -237,14 +237,14 @@ public class DispatchUtils {
             judge(temp, map, n, t);
         }
         int count = 0;
-        for(Map.Entry<Integer, Integer> entry : map.entrySet()) {
+        for (Map.Entry<Integer, Integer> entry : map.entrySet()) {
             count += entry.getValue();
         }
         return new BigDecimal((double) count / (double) (n * samplingNum)).setScale(6, BigDecimal.ROUND_HALF_EVEN);
     }
 
     private static boolean judgeSingleNode(Long[] arrayList, int i, int n, int t) {
-        long mask = (long)((1 << t) - 1);
+        long mask = (1L << t) - 1;
         long others = 0L;
         for (int j = 0; j < n; j++) {
             if (j == i) {
@@ -260,7 +260,7 @@ public class DispatchUtils {
             throw new Exception("数组长度不能为0");
         }
         for (int i = 0; i < n; i++) {
-            if(judgeSingleNode(arrayList, i, n, t)) {
+            if (judgeSingleNode(arrayList, i, n, t)) {
                 Integer count = map.get(i);
                 map.replace(i, ++count);
             }

@@ -37,7 +37,7 @@ public class VerifyConsumer implements Runnable {
     }
 
     private boolean judgeSingleNode(Long[] arrayList, int i) {
-        long mask = (long)((1 << t) - 1);
+        long mask = (1L << t) - 1;
         long others = 0L;
         for (int j = 0; j < n; j++) {
             if (j == i) {
@@ -45,7 +45,6 @@ public class VerifyConsumer implements Runnable {
             }
             others = others | arrayList[j];
         }
-//        totalCount++;
         return ((arrayList[i] & mask) & (~others & mask)) > 0L;
     }
 

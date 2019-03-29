@@ -6,9 +6,13 @@ import java.math.BigDecimal;
 
 public class SingleTest {
     public static void main(String[] args) {
-        Long[] array = new Long[] {3L, 5L, 9L, 17L, 33L};
+        int n = 10;
+        Long[] array = new Long[n];
+        for (int i = 0; i < n; i++) {
+            array[i] = 1L << i;
+        }
         try {
-            BigDecimal result = DispatchUtils.samplingVerify(array, 5, 10, 10000);
+            BigDecimal result = DispatchUtils.samplingVerify(array, 10, 63, 10000);
             System.out.println(result);
         } catch (Exception e) {
             e.printStackTrace();
