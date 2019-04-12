@@ -2,7 +2,6 @@ package com.algorithm.dispatch;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -20,18 +19,17 @@ public class ArrayProducer implements Runnable {
     private final ArrayBlockingQueue<List<Integer[]>> queue;
     private final CountDownLatch countDownLatch;
     private Map<Integer, Integer[]> resultMap;
-    private Map<Integer, HashSet<Integer>> frontward;
+//    private Map<Integer, HashSet<Integer>> frontward;
     private BigDecimal reliability;
     private volatile boolean flag;
 
-    public ArrayProducer(int index, int k, List<Integer> arr, ArrayBlockingQueue<List<Integer[]>> queue, CountDownLatch countDownLatch, Map<Integer, Integer[]> resultMap, Map<Integer, HashSet<Integer>> frontward, BigDecimal reliability, boolean flag) {
+    public ArrayProducer(int index, int k, List<Integer> arr, ArrayBlockingQueue<List<Integer[]>> queue, CountDownLatch countDownLatch, Map<Integer, Integer[]> resultMap, BigDecimal reliability, boolean flag) {
         this.index = index;
         this.k = k;
         this.arr = arr;
         this.queue = queue;
         this.countDownLatch = countDownLatch;
         this.resultMap = resultMap;
-        this.frontward = frontward;
         this.reliability = reliability;
         this.flag = flag;
     }

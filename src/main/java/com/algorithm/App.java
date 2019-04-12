@@ -13,9 +13,9 @@ import java.util.concurrent.*;
  */
 public class App {
     private static final int THREAD_NUM = 10;
-    private static List<Integer> tmpArr2 = new ArrayList<>();
-    private static Map<Integer, HashSet<Integer>> frontward = new HashMap<>();
-    private static Map<Integer, HashSet<Integer>> backward = new HashMap<>();
+//    private static List<Integer> tmpArr2 = new ArrayList<>();
+//    private static Map<Integer, HashSet<Integer>> frontward = new HashMap<>();
+//    private static Map<Integer, HashSet<Integer>> backward = new HashMap<>();
     private static Map<List<Integer[]>, VerifyResult> combineResult = new ConcurrentHashMap<>();
     private static volatile boolean flag = true;
 
@@ -105,20 +105,20 @@ public class App {
         Collection<Integer[]> resultCollection = normalizedResult.values();
         Map<Integer, Integer[]> resultMap = new HashMap<>(resultCollection.size());
         List<Integer> resultList = new ArrayList<>();
-
+//
         int index = 0;
         for (Integer[] array : resultCollection) {
             if (ruleOutNoRepeat(array, n)) {
                 resultMap.put(index, array);
                 resultList.add(index);
-                HashSet<Integer> set = new HashSet<>(Arrays.asList(array));
-                DispatchUtils.calculateSet(array, set, n, tmpArr2);
-                frontward.put(index, set);
-                for (Integer d : set) {
-                    HashSet<Integer> temp = backward.get(d) == null ? new HashSet<>() : backward.get(d);
-                    temp.add(index);
-                    backward.put(d, temp);
-                }
+//                HashSet<Integer> set = new HashSet<>(Arrays.asList(array));
+//                DispatchUtils.calculateSet(array, set, n, tmpArr2);
+//                frontward.put(index, set);
+//                for (Integer d : set) {
+//                    HashSet<Integer> temp = backward.get(d) == null ? new HashSet<>() : backward.get(d);
+//                    temp.add(index);
+//                    backward.put(d, temp);
+//                }
                 index++;
             }
         }
@@ -126,7 +126,7 @@ public class App {
         //组合模式
         ArrayBlockingQueue<List<Integer[]>> queue = new ArrayBlockingQueue<>(1000);
         final CountDownLatch countDownLatch = new CountDownLatch(THREAD_NUM + 1);
-        ArrayProducer producer = new ArrayProducer(0, n, resultList, queue, countDownLatch, resultMap, frontward, baseLine, flag);
+        ArrayProducer producer = new ArrayProducer(0, n, resultList, queue, countDownLatch, resultMap, baseLine, flag);
 
         ExecutorService producerExecutorService = new ThreadPoolExecutor(1, 1, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         ExecutorService verifyExecutorService = new ThreadPoolExecutor(THREAD_NUM, THREAD_NUM, 15, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
